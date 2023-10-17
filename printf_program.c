@@ -1,52 +1,48 @@
-#include <stdio.h>
+#include <stdarg.h>
+#include <unistd.h>
 #include "main.h"
 
 /**
- * _printf - Print formatted text to stdout
+ * _printf - Custom printf function
  * @format: The format string
+ * @...: Additional arguments based on format specifiers
  *
  * Return: The number of characters printed.
  */
 int _printf(const char *format, ...) {
     va_list args;
-    int count = 0;  // To keep track of characters printed.
+    int count = 0;
 
     va_start(args, format);
 
     while (*format) {
         if (*format != '%') {
-            putchar(*format);
+            write(1, format, 1);
             count++;
         } else {
-            format++;  // Move to the next character after '%'
-            switch (*format) {
-                case 'c': {
-                    char c = va_arg(args, int);  // char promotes to int in varargs
-                    putchar(c);
+            format++; // Move past '%'
+            if (*format == 'c') {
+                char c = va_arg(args, int);
+                write(1, &c, 1);
+                count++;
+            } else if (*format == 's') {
+                char *str = va_arg(args, char *);
+                int i = 0;
+                while (str[i]) {
+                    write(1, &str[i], 1);
+                    i++;
                     count++;
-                    break;
                 }
-                case 's': {
-                    const char *str = va_arg(args, const char *);
-                    while (*str) {
-                        putchar(*str);
-                        str++;
-                        count++;
-                    }
-                    break;
-                }
-                case '%':
-                    putchar('%');
-                    count++;
-                    break;
-                default:
-                    putchar('%');
-                    putchar(*format);
-                    count += 2;
-                    break;
+            } else if (*format == '%') {
+                write(1, "%", 1);
+                count++;
+            } else {
+                write(1, "%", 1);
+                write(1, format, 1);
+                count += 2;
             }
         }
-        format++;  // Move to the next character in the format string.
+        format++;
     }
 
     va_end(args);
